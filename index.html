@@ -50,7 +50,11 @@
   header{display:flex; align-items:center; justify-content:space-between; flex-shrink:0; margin:0 var(--px);}
   h1{margin:0; font-weight:400; font-size:clamp(1.5rem,4.6vh,2.4rem); color:var(--amber); letter-spacing:.12em; text-shadow:2px 2px 0 #000;}
   h1 span{color:var(--muted); font-size:.55em; letter-spacing:.25em; margin-left:.8em;}
-  #status{display:flex; align-items:center; gap:10px; color:var(--muted);}
+  #status{display:flex; flex-direction:column; align-items:flex-end; gap:6px; color:var(--muted);}
+  #statusLine{display:flex; align-items:center; justify-content:flex-end; gap:10px;}
+  #quickCheckBtn{font-family:inherit; font-size:inherit; background:var(--panel); color:var(--amber); border:0; border-radius:0; padding:1px 10px; cursor:pointer; margin:var(--px); box-shadow:0 calc(-1*var(--px)) 0 0 var(--line), 0 var(--px) 0 0 var(--line), calc(-1*var(--px)) 0 0 0 var(--line), var(--px) 0 0 0 var(--line), inset 0 calc(-1*var(--px)) 0 0 rgba(0,0,0,.28);}
+  #quickCheckBtn:active{transform:translateY(2px);}
+  #quickCheckBtn:disabled{opacity:.45; cursor:not-allowed;}
   #dot{width:10px; height:10px; background:var(--pink); flex-shrink:0;}
   #dot.on{background:#4dff9a; box-shadow:0 0 0 2px #0c3b25;}
   #connectBtn{
@@ -165,7 +169,10 @@
 
 <header>
   <h1>ROVER-X<span>CONTROL</span></h1>
-  <div id="status"><span id="dot"></span><span id="statusText">offline</span><button id="connectBtn">Connect</button></div>
+  <div id="status">
+    <div id="statusLine"><span id="dot"></span><span id="statusText">offline</span><button id="connectBtn">Connect</button></div>
+    <button id="quickCheckBtn" disabled>QUICK CHECK</button>
+  </div>
 </header>
 
 <div class="grid">
@@ -182,6 +189,9 @@
       </div>
     </div>
     <div class="panel" style="flex:1; display:flex; flex-direction:column; min-height:0;">
+      <div class="row"><h2>RGB Power</h2>
+        <div class="toggle"><input type="checkbox" id="rgbPower" checked><span class="track"></span></div>
+      </div>
       <div class="row"><h2>Manual Colour</h2>
         <div class="toggle"><input type="checkbox" id="rgbToggle"><span class="track"></span></div>
       </div>
@@ -223,7 +233,7 @@ const CONTROL_UUID   = '12345678-1234-5678-1234-56789abcdef1';
 const DISTANCE_UUID  = '12345678-1234-5678-1234-56789abcdef2';
 const TERMINAL_UUID  = '12345678-1234-5678-1234-56789abcdef3';
 
-const state = {x:0,y:0,mood:0,headlight:0,r:0,g:255,b:0,rgbToggle:0,horn:0};
+const state = {x:0,y:0,mood:0,headlight:0,r:0,g:255,b:0,rgbToggle:0,horn:0,quickCheck:0,rgbPower:1};
 let controlChar=null, distanceChar=null, terminalChar=null, device=null, sendTimer=null;
 
 const dot=document.getElementById('dot'), statusText=document.getElementById('statusText');
@@ -240,15 +250,18 @@ function setStatus(on){
   dot.classList.toggle('on',on);
   statusText.textContent=on?'online':'offline';
   document.getElementById('connectBtn').textContent=on?'Disconnect':'Connect';
+  document.getElementById('quickCheckBtn').disabled=!on;
 }
 
-// 9-byte control packet (same layout as before)
+// 11-byte control packet. Firmware must read bytes 9 and 10 too.
+// Byte 9 = one-shot Quick Check request; byte 10 = RGB power (1=on, 0=off).
 function sendControl(){
   if(!controlChar) return;
-  const u=new Uint8Array(9);
+  const u=new Uint8Array(11);
   u[0]=state.x; u[1]=state.y; u[2]=state.mood; u[3]=state.headlight;
   u[4]=state.r; u[5]=state.g; u[6]=state.b; u[7]=state.rgbToggle; u[8]=state.horn;
-  controlChar.writeValueWithoutResponse(u).catch(()=>{});
+  u[9]=state.quickCheck; u[10]=state.rgbPower;
+  controlChar.writeValueWithoutResponse(u).catch(err=>appendTerminal('send failed: '+err.message));
 }
 
 async function onConnectClick(){
@@ -288,6 +301,16 @@ async function onConnectClick(){
   }
 }
 document.getElementById('connectBtn').addEventListener('click', onConnectClick);
+
+// ---- Quick Check: confirm first, then send a one-shot true (1) ----
+document.getElementById('quickCheckBtn').addEventListener('click', ()=>{
+  if(!controlChar) return;
+  if(!window.confirm('Send Quick Check = true to Rover-X?')) return;
+  state.quickCheck=1;
+  sendControl();
+  state.quickCheck=0;
+  appendTerminal('quick check request sent: true');
+});
 
 // ---- pixel drawing helper: fills every pixel whose centre is between r0 and r from the middle ----
 function disc(ctx,n,r,color,r0){
@@ -359,6 +382,13 @@ hornBtn.addEventListener('pointerdown', ()=>{ state.horn=1; hornBtn.classList.ad
 // ---- Mood / Headlight ----
 document.getElementById('mood').addEventListener('change', e=>{ state.mood=e.target.selectedIndex; sendControl(); });
 document.getElementById('headlight').addEventListener('change', e=>{ state.headlight=e.target.checked?1:0; sendControl(); });
+
+// ---- RGB master power: off means the firmware should turn the RGB LED fully off ----
+document.getElementById('rgbPower').addEventListener('change', e=>{
+  state.rgbPower=e.target.checked?1:0;
+  sendControl();
+  appendTerminal('RGB power '+(state.rgbPower?'on':'off'));
+});
 
 // ---- Colour wheel: drawn chunky (48x48 cells), but the colour sent is computed from the exact
 // touch position, so r/g/b still cover the full 0-255 range per channel. ----
