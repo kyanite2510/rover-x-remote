@@ -171,7 +171,7 @@
   <h1>ROVER-X<span>CONTROL</span></h1>
   <div id="status">
     <div id="statusLine"><span id="dot"></span><span id="statusText">offline</span><button id="connectBtn">Connect</button></div>
-    <button id="quickCheckBtn" disabled>QUICK CHECK</button>
+    <button id="quickCheckBtn">QUICK CHECK</button>
   </div>
 </header>
 
@@ -250,7 +250,6 @@ function setStatus(on){
   dot.classList.toggle('on',on);
   statusText.textContent=on?'online':'offline';
   document.getElementById('connectBtn').textContent=on?'Disconnect':'Connect';
-  document.getElementById('quickCheckBtn').disabled=!on;
 }
 
 // 11-byte control packet. Firmware must read bytes 9 and 10 too.
@@ -304,8 +303,11 @@ document.getElementById('connectBtn').addEventListener('click', onConnectClick);
 
 // ---- Quick Check: confirm first, then send a one-shot true (1) ----
 document.getElementById('quickCheckBtn').addEventListener('click', ()=>{
-  if(!controlChar) return;
   if(!window.confirm('Send Quick Check = true to Rover-X?')) return;
+  if(!controlChar){
+    appendTerminal('not connected: Quick Check was not sent');
+    return;
+  }
   state.quickCheck=1;
   sendControl();
   state.quickCheck=0;
