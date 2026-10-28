@@ -262,7 +262,7 @@ function sendControl(){
   u[0]=state.x; u[1]=state.y; u[2]=state.mood; u[3]=state.headlight;
   u[4]=state.r; u[5]=state.g; u[6]=state.b; u[7]=state.rgbToggle; u[8]=state.horn;
   u[9]=state.quickCheck; u[10]=state.rgbPower;
-  controlChar.writeValueWithoutResponse(u).catch(err=>appendTerminal('send failed: '+err.message));
+  controlChar.writeValueWithoutResponse(u).catch(()=>{});
 }
 
 async function onConnectClick(){
