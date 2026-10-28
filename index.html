@@ -189,9 +189,6 @@
       </div>
     </div>
     <div class="panel" style="flex:1; display:flex; flex-direction:column; min-height:0;">
-      <div class="row"><h2>RGB Power</h2>
-        <div class="toggle"><input type="checkbox" id="rgbPower" checked><span class="track"></span></div>
-      </div>
       <div class="row"><h2>Manual Colour</h2>
         <div class="toggle"><input type="checkbox" id="rgbToggle"><span class="track"></span></div>
       </div>
@@ -209,6 +206,11 @@
   <div class="col">
     <div id="hornBtn">HORN</div>
     <div id="brandBar">ROVER-X</div>
+      <div class="panel">
+    <div class="row last"><h2>RGB Power</h2>
+      <div class="toggle"><input type="checkbox" id="rgbPower" checked><span class="track"></span></div>
+    </div>
+  </div>
     <div class="panel" style="flex:2.2; display:flex; flex-direction:column; min-height:0;">
       <h2>Terminal</h2>
       <div id="terminal"></div>
@@ -303,7 +305,7 @@ document.getElementById('connectBtn').addEventListener('click', onConnectClick);
 
 // ---- Quick Check: confirm first, then send a one-shot true (1) ----
 document.getElementById('quickCheckBtn').addEventListener('click', ()=>{
-  if(!window.confirm('Send Quick Check = true to Rover-X?')) return;
+  if(!window.confirm('Start Quick Test?')) return;
   if(!controlChar){
     appendTerminal('not connected: Quick Check was not sent');
     return;
