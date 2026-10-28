@@ -129,6 +129,9 @@
                inset 0 calc(-1*var(--px)) 0 0 rgba(0,0,0,.35);
   }
   #hornBtn.active{background:var(--pink); color:#2a0016;}
+  #hornRow{flex:.6; min-height:0; display:flex; gap:clamp(4px,1vh,12px);}
+  #hornRow > *{flex:1; min-width:0;}
+  #distPanel{display:flex; flex-direction:column; justify-content:center;}
 
   #brandBar{
     flex-shrink:0; margin:var(--px); padding:clamp(4px,1vh,10px); background:var(--amber); color:#1a1000;
@@ -189,6 +192,9 @@
       </div>
     </div>
     <div class="panel" style="flex:1; display:flex; flex-direction:column; min-height:0;">
+      <div class="row"><h2>RGB Power</h2>
+        <div class="toggle"><input type="checkbox" id="rgbPower" checked><span class="track"></span></div>
+      </div>
       <div class="row"><h2>Manual Colour</h2>
         <div class="toggle"><input type="checkbox" id="rgbToggle"><span class="track"></span></div>
       </div>
@@ -197,20 +203,17 @@
         <div id="wheelKnob"></div>
       </div>
     </div>
-    <div class="panel">
-      <h2>Distance</h2>
-      <div><span id="distanceVal">--</span><span class="unit">cm</span></div>
-    </div>
   </div>
 
   <div class="col">
-    <div id="hornBtn">HORN</div>
-    <div id="brandBar">ROVER-X</div>
-      <div class="panel">
-    <div class="row last"><h2>RGB Power</h2>
-      <div class="toggle"><input type="checkbox" id="rgbPower" checked><span class="track"></span></div>
+    <div id="hornRow">
+      <div class="panel" id="distPanel">
+        <h2>Distance</h2>
+        <div><span id="distanceVal">--</span><span class="unit">cm</span></div>
+      </div>
+      <div id="hornBtn">HORN</div>
     </div>
-  </div>
+    <div id="brandBar">ROVER-X</div>
     <div class="panel" style="flex:2.2; display:flex; flex-direction:column; min-height:0;">
       <h2>Terminal</h2>
       <div id="terminal"></div>
