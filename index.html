@@ -269,7 +269,7 @@ function sendControl(){
 }
 
 async function onConnectClick(){
-  if(document.documentElement.requestFullscreen && !document.fullscreenElement){
+  if(window.matchMedia('(pointer:coarse)').matches && document.documentElement.requestFullscreen && !document.fullscreenElement){
     document.documentElement.requestFullscreen().catch(()=>{});
   }
   if(device && device.gatt.connected){ device.gatt.disconnect(); return; }
@@ -394,7 +394,6 @@ document.getElementById('headlight').addEventListener('change', e=>{ state.headl
 document.getElementById('rgbPower').addEventListener('change', e=>{
   state.rgbPower=e.target.checked?1:0;
   sendControl();
-  appendTerminal('RGB power '+(state.rgbPower?'on':'off'));
 });
 
 // ---- Colour wheel: drawn chunky (48x48 cells), but the colour sent is computed from the exact
