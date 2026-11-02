@@ -119,6 +119,10 @@
 
   #distanceVal{font-size:clamp(1.6rem,5vh,2.6rem); color:var(--amber); line-height:1;}
   .unit{color:var(--muted); margin-left:6px;}
+  
+  #readouts{display:flex; align-items:center; gap:clamp(12px,3vw,32px);}
+  .readout{display:flex; align-items:baseline; gap:6px; color:var(--muted);}
+  #batteryVal{font-size:clamp(1.6rem,5vh,2.6rem); color:var(--amber); line-height:1;}
 
   #hornBtn{
     flex:.6; min-height:0; margin:var(--px); display:flex; align-items:center; justify-content:center;
@@ -172,6 +176,10 @@
 
 <header>
   <h1>ROVER-X<span>CONTROL</span></h1>
+  <div id="readouts">
+    <div class="readout"><span>Battery</span><span id="batteryVal">--</span><span class="unit">V</span></div>
+    <div class="readout"><span>Distance</span><span id="distanceVal">--</span><span class="unit">cm</span></div>
+  </div>
   <div id="status">
     <div id="statusLine"><span id="dot"></span><span id="statusText">offline</span><button id="connectBtn">Connect</button></div>
     <button id="quickCheckBtn">QUICK CHECK</button>
@@ -207,10 +215,6 @@
 
   <div class="col">
     <div id="hornRow">
-      <div class="panel" id="distPanel">
-        <h2>Distance</h2>
-        <div><span id="distanceVal">--</span><span class="unit">cm</span></div>
-      </div>
       <div id="hornBtn">HORN</div>
     </div>
     <div id="brandBar">ROVER-X</div>
@@ -237,6 +241,7 @@ const SERVICE_UUID   = '12345678-1234-5678-1234-56789abcdef0';
 const CONTROL_UUID   = '12345678-1234-5678-1234-56789abcdef1';
 const DISTANCE_UUID  = '12345678-1234-5678-1234-56789abcdef2';
 const TERMINAL_UUID  = '12345678-1234-5678-1234-56789abcdef3';
+const BATTERY_UUID   = '12345678-1234-5678-1234-56789abcdef4';
 
 const state = {x:0,y:0,mood:0,headlight:0,r:0,g:255,b:0,rgbToggle:0,horn:0,quickCheck:0,rgbPower:1};
 let controlChar=null, distanceChar=null, terminalChar=null, device=null, sendTimer=null;
@@ -294,6 +299,12 @@ async function onConnectClick(){
     await terminalChar.startNotifications();
     terminalChar.addEventListener('characteristicvaluechanged', e=>{
       appendTerminal(new TextDecoder().decode(e.target.value));
+    });
+
+    const batteryChar = await service.getCharacteristic(BATTERY_UUID);
+    await batteryChar.startNotifications();
+    batteryChar.addEventListener('characteristicvaluechanged', e=>{
+      document.getElementById('batteryVal').textContent = e.target.value.getFloat32(0,true).toFixed(2);
     });
 
     setStatus(true);
