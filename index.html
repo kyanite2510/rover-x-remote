@@ -272,6 +272,10 @@ function sendControl(){
   controlChar.writeValueWithoutResponse(u).catch(()=>{});
 }
 
+function onDisconnected(){
+  setStatus(false); controlChar=null; clearInterval(sendTimer); appendTerminal('disconnected');
+}
+
 async function onConnectClick(){
   if(window.matchMedia('(pointer:coarse)').matches && document.documentElement.requestFullscreen && !document.fullscreenElement){
     document.documentElement.requestFullscreen().catch(()=>{});
@@ -281,9 +285,7 @@ async function onConnectClick(){
     device = await navigator.bluetooth.requestDevice({
       filters:[{name:BOARD_NAME}], optionalServices:[SERVICE_UUID]
     });
-    device.addEventListener('gattserverdisconnected', ()=>{
-      setStatus(false); controlChar=null; clearInterval(sendTimer); appendTerminal('disconnected');
-    });
+    device.addEventListener('gattserverdisconnected', onDisconnected);
     const server = await device.gatt.connect();
     const service = await server.getPrimaryService(SERVICE_UUID);
     controlChar = await service.getCharacteristic(CONTROL_UUID);
